@@ -1,0 +1,53 @@
+version: "3.8"
+
+services:
+  db:
+    container_name: crowdfunding-postgres
+    image: postgres:17
+    restart: unless-stopped
+
+    ports:
+      - "5432:5432"
+
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U teste"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+    networks:
+      - crowdfunding-network
+
+  pgadmin:
+    container_name: crowdfunding-pgadmin
+    image: dpage/pgadmin4
+    restart: unless-stopped
+
+    ports:
+      - "3000:80"
+
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
+
+    depends_on:
+      db:
+        condition: service_healthy
+
+    networks:
+      - crowdfunding-network
+
+networks:
+  crowdfunding-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
